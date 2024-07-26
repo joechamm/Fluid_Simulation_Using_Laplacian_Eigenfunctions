@@ -28,9 +28,7 @@ class FluidSimulation
 	// Basis function lookup table
 	glm::ivec2* m_basis_lookup_table;
 	// Reverse lookup table
-	uint32_t** m_basis_rlookup_table;
-	//// Basis functions
-	//glm::dvec2*** m_velocity_basis;
+	int32_t** m_basis_rlookup_table;
 	// Scalar Eigenvalues
 	double* m_eigs;
 	// Multiplicative inverses of eigenvalues
@@ -67,13 +65,6 @@ class FluidSimulation
 	// number of basis functions
 	uint32_t m_num_basis_functions;
 
-	// store the previous basis dimension
-	uint32_t m_prev_basis_dimension;
-
-	//// for the velocity field, we'll use a 2D array of basis functions
-	//int m_velocity_grid_resolution_y;
-	//int m_velocity_grid_resolution_x;
-
 	// let's make a list of the basis functions to ignore so we can see the effect of different basis functions
 	// we'll put a 1 for the modes we want to keep and a 0 for the modes we want to ignore
 	uint32_t* m_zero_modes;
@@ -90,8 +81,8 @@ public:
 
 	// Initialize the simulation
 	void Initialize();
-	// Initialize the fields
-	void InitFields();
+
+
 	// Create the lookup tables
 	void CreateLookupTables();
 	// Create the basis functions field
@@ -103,46 +94,34 @@ public:
 
 	// Fill Lookup Table
 	void FillLookupTables();
-	// Precompute Basis Function Field
-	void PrecomputeBasisField();
 
 	void PrecomputeDynamics();
 	
-
-//	void ExpandBasis();
-
 	/// Teardown ///
 	// Destroy the structure coefficient matrices
 	void DestroyCkMatrices();
 	// Destroy the lookup tables
 	void DestroyLookupTables();
-	// Destroy the basis functions field
-	//void DestroyBasisField();
 	// Destroy the scalar eigenvalues
 	void DestroyEigenvalues();
 
-
-	// Set the basis dimension
-	void SetBasisDimension(uint32_t dimension);
-
-
-	// Set the velocity resolution
-//	void SetVelocityResolution(int resolution);
-
-
 	// Basis lookup table accessors
-	uint32_t BasisLookup(uint32_t idx, uint32_t component);
-	glm::ivec2 BasisLookupK(uint32_t idx);
+	int32_t BasisLookup(uint32_t idx, uint32_t component) const;
+	glm::ivec2 BasisLookupK(uint32_t idx) const;
 
-	uint32_t BasisRLookup(const glm::ivec2& K);
+	int32_t BasisRLookup(const glm::ivec2& K) const;
 
 	// Calculate the coefficient
-	double CalculateCoefficient(const glm::ivec2& a, const glm::ivec2& b, const glm::ivec2& c);
+	double CalculateCoefficient(const glm::ivec2& a, const glm::ivec2& b, const glm::ivec2& c) const;
 
-	double CurrentEnergy();
+	double CurrentEnergy() const;
 
 	void SetEnergy(double desired_energy);
 
-	void BasisFieldRect2D(const glm::ivec2& K, uint32_t numGridCols, uint32_t numGridRows, double domainWidth, double domainHeight,  double amplitude, glm::dvec2** velocityBasisElement);
+	void BasisFieldRect2D(const glm::ivec2& K, uint32_t numGridCols, uint32_t numGridRows, double amplitude, glm::dvec2** velocityBasisElement) const;
+
+	void TimeStep();
+
+	void ProjectForces(const std::vector<glm::dvec4>& force_list, arma::vec& delW) const;
 };
 

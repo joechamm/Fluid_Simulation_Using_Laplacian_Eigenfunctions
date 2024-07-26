@@ -14,7 +14,6 @@ FluidSimulation::FluidSimulation(uint32_t dimension, double viscosity, double dt
 	m_dt(dt),
 	m_domain(domain),
 	m_num_basis_functions(dimension* dimension),
-	m_prev_basis_dimension(dimension),
 	m_wCoefficients(dimension* dimension, arma::fill::zeros),
 	m_dwCoefficients(dimension* dimension, arma::fill::zeros),
 	m_dwForceCoefficients(dimension* dimension, arma::fill::zeros),
@@ -63,22 +62,22 @@ void FluidSimulation::CreateLookupTables()
 	// store the lookup table as a list of integer grid points
 	m_basis_lookup_table = new glm::ivec2[m_num_basis_functions];
 
-	for (int k = 0; k < m_num_basis_functions; k++)
+	for (uint32_t k = 0; k < m_num_basis_functions; k++)
 	{
 		m_basis_lookup_table[k].x = -1;
 		m_basis_lookup_table[k].y = -1;
 	}
 
 	// store the reverse lookup table as a list of pointers... this is a bit of a hack but it should work TODO: explain better here
-	m_basis_rlookup_table = new int* [m_basis_dimension + 1];
-	for (int i = 0; i <= m_basis_dimension; i++)
+	m_basis_rlookup_table = new int32_t * [m_basis_dimension + 1];
+	for (uint32_t i = 0; i <= m_basis_dimension; i++)
 	{
-		m_basis_rlookup_table[i] = new int[m_basis_dimension + 1];
+		m_basis_rlookup_table[i] = new int32_t[m_basis_dimension + 1];
 	}
 
-	for (int k1 = 0; k1 <= m_basis_dimension; k1++)
+	for (uint32_t k1 = 0; k1 <= m_basis_dimension; k1++)
 	{
-		for (int k2 = 0; k2 <= m_basis_dimension; k2++)
+		for (uint32_t k2 = 0; k2 <= m_basis_dimension; k2++)
 		{
 			m_basis_rlookup_table[k1][k2] = -1;
 		}
@@ -97,7 +96,7 @@ void FluidSimulation::CreateEigenvalues()
 	m_eigs_inv = new double[m_num_basis_functions];
 	m_eigs_inv_root = new double[m_num_basis_functions];
 
-	for (int k = 0; k < m_num_basis_functions; k++)
+	for (uint32_t k = 0; k < m_num_basis_functions; k++)
 	{
 		m_eigs[k] = 0.0;
 		m_eigs_inv[k] = 0.0;
@@ -110,10 +109,10 @@ void FluidSimulation::FillLookupTables()
 {
 	CreateLookupTables();
 
-	int idx = 0;
-	for (int k1 = 0; k1 <= m_basis_dimension; k1++)
+	int32_t idx = 0;
+	for (uint32_t k1 = 0; k1 <= m_basis_dimension; k1++)
 	{
-		for (int k2 = 0; k2 <= m_basis_dimension; k2++)
+		for (uint32_t k2 = 0; k2 <= m_basis_dimension; k2++)
 		{
 			if (k1 > m_basis_dimension || k1 < 1 || k2 > m_basis_dimension || k2 < 1)
 			{
@@ -133,7 +132,7 @@ void FluidSimulation::PrecomputeDynamics()
 {
 	CreateEigenvalues();
 
-	for (int k = 0; k < m_num_basis_functions; k++)
+	for (uint32_t k = 0; k < m_num_basis_functions; k++)
 	{
 		glm::ivec2 idxK;
 		idxK.x = BasisLookup(k, 0);
@@ -146,7 +145,7 @@ void FluidSimulation::PrecomputeDynamics()
 		m_eigs_inv_root[k] = sqrt(m_eigs_inv[k]);
 	}
 
-	for (int d1 = 0; d1 < m_num_basis_functions; d1++)
+	for (uint32_t d1 = 0; d1 < m_num_basis_functions; d1++)
 	{
 		glm::ivec2 idxA;
 		idxA.x = BasisLookup(d1, 0);
@@ -154,7 +153,7 @@ void FluidSimulation::PrecomputeDynamics()
 
 		double lambda_a = -(double)(glm::dot(idxA, idxA));
 
-		for (int d2 = 0; d2 < m_num_basis_functions; d2++)
+		for (uint32_t d2 = 0; d2 < m_num_basis_functions; d2++)
 		{
 			glm::ivec2 idxB;
 			idxB.x = BasisLookup(d2, 0);
@@ -163,8 +162,8 @@ void FluidSimulation::PrecomputeDynamics()
 			double lambda_b = -(double)(glm::dot(idxB, idxB));
 			double inv_lambda_b = 1.0 / lambda_b;
 
-			int k1 = BasisRLookup(idxA);
-			int k2 = BasisRLookup(idxB);
+			int32_t k1 = BasisRLookup(idxA);
+			int32_t k2 = BasisRLookup(idxB);
 
 			glm::ivec2 antipairs[4];
 
@@ -178,9 +177,9 @@ void FluidSimulation::PrecomputeDynamics()
 			antipairs[2].y = idxA.y - idxB.y;
 			antipairs[3].y = idxA.y + idxB.y;
 
-			for (int c = 0; c < 4; c++)
+			for (uint32_t c = 0; c < 4; c++)
 			{
-				int idx = BasisRLookup(antipairs[c]);
+				int32_t idx = BasisRLookup(antipairs[c]);
 
 				if (idx != -1)
 				{
@@ -209,34 +208,6 @@ void FluidSimulation::PrecomputeDynamics()
 		}
 	}
 }
-
-//// Create the basis functions field
-//void FluidSimulation::CreateBasisField()
-//{
-//	if (m_velocity_basis != nullptr)
-//	{
-//		DestroyBasisField();
-//	}
-//
-//	// TODO: make sure that m_num_basis_functions and m_num_basis_functions_sqroot are set before calling this function and handle zero modes
-//
-//	// Allocate memory for the basis functions
-//	m_velocity_basis = new glm::dvec2** [m_num_basis_functions];
-//
-//	for (int k = 0; k < m_num_basis_functions; k++)
-//	{
-//		m_velocity_basis[k] = new glm::dvec2 * [m_velocity_grid_resolution_y + 1];
-//
-//		for (int row = 0; row <= m_velocity_grid_resolution_y; row++)
-//		{
-//			m_velocity_basis[k][row] = new glm::dvec2[m_velocity_grid_resolution_x + 1];
-//			for (int col = 0; col <= m_velocity_grid_resolution_x; col++) 
-//			{
-//				m_velocity_basis[k][row][col] = glm::dvec2(0.0, 0.0);
-//			}
-//		}
-//	}		
-//}
 
 // Destroy the structure coefficient matrices
 void FluidSimulation::DestroyCkMatrices()
@@ -291,81 +262,17 @@ void FluidSimulation::DestroyEigenvalues()
 	}
 }
 
-//// Destroy the basis functions field
-//void FluidSimulation::DestroyBasisField()
-//{
-//	if (m_velocity_basis != nullptr)
-//	{
-//		for (int k = 0; k < m_num_basis_functions; k++)
-//		{
-//			if (m_velocity_basis[k] != nullptr)
-//			{
-//				for (int row = 0; row <= m_velocity_grid_resolution_y; row++) 
-//				{
-//					if (m_velocity_basis[k][row] != nullptr)
-//					{
-//						delete[] m_velocity_basis[k][row];
-//						m_velocity_basis[k][row] = nullptr;
-//					}
-//				}
-//
-//				delete[] m_velocity_basis[k];
-//				m_velocity_basis[k] = nullptr;
-//			}			
-//		}
-//
-//		delete[] m_velocity_basis;
-//		m_velocity_basis = nullptr;		
-//	}
-//}
-
-// Set the basis dimension
-void FluidSimulation::SetBasisDimension(int dimension)
-{
-	try {
-		if (dimension <= 0)
-		{
-			throw std::invalid_argument("The basis dimension must be greater than 0.");
-		}
-
-		// Debugging //
-#ifndef NDEBUG
-		std::cout << "Setting the basis dimension to " << dimension << std::endl;
-#endif // !NDEBUG
-
-		// Do some teardown
-		DestroyLookupTables();
-		DestroyCkMatrices();
-//		DestroyBasisField();
-		DestroyEigenvalues();
-
-		m_prev_basis_dimension = m_basis_dimension;
-
-		m_basis_dimension = dimension;
-
-		InitFields();
-		FillLookupTables();
-		PrecomputeBasisField();
-		ExpandBasis();
-
-
-	}
-	catch (const std::invalid_argument& e) {
-		std::cerr << e.what() << std::endl;
-	}
-}
-
-uint32_t FluidSimulation::BasisLookup(uint32_t idx, uint32_t component)
+int32_t FluidSimulation::BasisLookup(uint32_t idx, uint32_t component) const
 {
 	return m_basis_lookup_table[idx][component];
 }
 
-glm::ivec2 FluidSimulation::BasisLookupK(uint32_t idx)
+glm::ivec2 FluidSimulation::BasisLookupK(uint32_t idx) const
 {
 	return m_basis_lookup_table[idx];
 }
 
-uint32_t FluidSimulation::BasisRLookup(const glm::ivec2& K)
+int32_t FluidSimulation::BasisRLookup(const glm::ivec2& K) const
 {
 	if (K.x > m_basis_dimension || K.x < 1 || K.y > m_basis_dimension || K.y < 1)
 	{
@@ -375,7 +282,7 @@ uint32_t FluidSimulation::BasisRLookup(const glm::ivec2& K)
 	return m_basis_rlookup_table[K.x][K.y];
 }
 
-double FluidSimulation::CalculateCoefficient(const glm::ivec2& a, const glm::ivec2& b, const glm::ivec2& c)
+double FluidSimulation::CalculateCoefficient(const glm::ivec2& a, const glm::ivec2& b, const glm::ivec2& c) const
 {
 	switch (c.y)
 	{
@@ -452,7 +359,7 @@ double FluidSimulation::CalculateCoefficient(const glm::ivec2& a, const glm::ive
 	return 0;
 }
 
-double FluidSimulation::CurrentEnergy()
+double FluidSimulation::CurrentEnergy() const
 {
 	double energy = 0.0;
 	for (int k = 0; k < m_num_basis_functions; k++)
@@ -472,7 +379,7 @@ void FluidSimulation::SetEnergy(double desired_energy)
 	m_wCoefficients = m_wCoefficients * factor;
 }
 
-void FluidSimulation::BasisFieldRect2D(const glm::ivec2& K, uint32_t numGridCols, uint32_t numGridRows, double domainWidth, double domainHeight, double amplitude, glm::dvec2** velocityBasisElement)
+void FluidSimulation::BasisFieldRect2D(const glm::ivec2& K, uint32_t numGridCols, uint32_t numGridRows, double amplitude, glm::dvec2** velocityBasisElement) const
 {
 	double scaleX = 1.0;
 	double scaleY = 1.0;
@@ -485,6 +392,9 @@ void FluidSimulation::BasisFieldRect2D(const glm::ivec2& K, uint32_t numGridCols
 	{
 		scaleY = -1.0 / ((double)(glm::dot(K, K)));
 	}
+
+	double domainWidth = m_domain.z - m_domain.x;
+	double domainHeight = m_domain.w - m_domain.y;
 
 	double dx = domainWidth / (double)numGridCols;
 	double dy = domainHeight / (double)numGridRows;
@@ -511,37 +421,93 @@ void FluidSimulation::BasisFieldRect2D(const glm::ivec2& K, uint32_t numGridCols
 	}
 }
 
-//// Set the velocity resolution
-//void FluidSimulation::SetVelocityResolution(int resolution)
-//{
-//	try {
-//		if (resolution <= 0)
-//		{
-//			throw std::invalid_argument("The velocity resolution must be greater than 0.");
-//		}
-//
-//		// Debugging //
-//#ifndef NDEBUG
-//		std::cout << "Setting the velocity resolution to " << resolution << std::endl;
-//#endif // !NDEBUG
-//
-//		DestroyLookupTables();
-//		DestroyCkMatrices();
-//		DestroyBasisField();
-//		DestroyEigenvalues();
-//
-//		m_velocity_grid_resolution_x = resolution;
-//		m_velocity_grid_resolution_y = resolution;
-//
-//		InitFields();
-//		FillLookupTables();
-//		PrecomputeBasisField();
-//		PrecomputeDynamics();
-//		ExpandBasis();
-//
-//	}
-//	catch (const std::invalid_argument& e) {
-//		std::cerr << e.what() << std::endl;
-//	}
-//
-//}
+void FluidSimulation::TimeStep()
+{
+	// store the current energy for renomalization later
+	double previous_energy = CurrentEnergy();
+
+	// 4th order-Runge-Kutta integration
+	m_rk4Qn[0] = m_wCoefficients;
+
+	for (uint32_t k = 0; k < m_num_basis_functions; k++)
+	{
+		m_rk4Dwt[0](k) = arma::as_scalar(arma::trans(m_rk4Qn[0]) * m_CkMatrices[k] * m_rk4Qn[0]);
+		m_rk4Qn[1](k) = m_rk4Qn[0](k) + m_rk4Dwt[0](k) * m_dt * 0.5;
+	}
+
+	for (uint32_t k = 0; k < m_num_basis_functions; k++)
+	{
+		m_rk4Dwt[1](k) = arma::as_scalar(arma::trans(m_rk4Qn[1]) * m_CkMatrices[k] * m_rk4Qn[1]);
+		m_rk4Qn[2](k) = m_rk4Qn[0](k) + m_rk4Dwt[1](k) * m_dt * 0.5;
+	}
+
+	for (uint32_t k = 0; k < m_num_basis_functions; k++)
+	{
+		m_rk4Dwt[2](k) = arma::as_scalar(arma::trans(m_rk4Qn[2]) * m_CkMatrices[k] * m_rk4Qn[2]);
+		m_rk4Qn[3](k) = m_rk4Qn[0](k) + m_rk4Dwt[2](k) * m_dt;
+	}
+
+	for (uint32_t k = 0; k < m_num_basis_functions; k++)
+	{
+		m_rk4Dwt[3](k) = arma::as_scalar(arma::trans(m_rk4Qn[3]) * m_CkMatrices[k] * m_rk4Qn[3]);
+		m_dwCoefficients(k) = (m_rk4Dwt[0](k) + m_rk4Dwt[1](k) * 2.0 + m_rk4Dwt[2](k) * 2.0 + m_rk4Dwt[3](k)) / 6.0;
+	}
+
+	m_wCoefficients += m_dwCoefficients * m_dt;
+
+	if (previous_energy > 1e-5)
+	{
+		SetEnergy(previous_energy);
+	}
+
+	for (uint32_t k = 0; k < m_num_basis_functions; k++)
+	{
+		double eigenvalue = - m_eigs[k];
+		m_wCoefficients(k) = m_wCoefficients(k) * exp(eigenvalue * m_dt * m_viscosity) + m_dwForceCoefficients(k);
+		m_dwForceCoefficients(k) = 0.0;
+	}
+}
+
+void FluidSimulation::ProjectForces(const std::vector<glm::dvec4>& force_list, arma::vec& delW) const
+{
+	delW.set_size(m_num_basis_functions);
+	delW.zeros();
+	for (uint32_t k = 0; k < m_num_basis_functions; k++)
+	{
+		int32_t k1 = BasisLookup(k, 0);
+		int32_t k2 = BasisLookup(k, 1);
+
+		double xfactor = 1.0;
+		double yfactor = 1.0;
+		if (k1 != 0)
+		{
+			xfactor = -1.0 / ((double)(k1 * k1 + k2 * k2));
+		}
+		if (k2 != 0)
+		{
+			yfactor = -1.0 / ((double)(k1 * k1 + k2 * k2));
+		}
+
+		std::vector<glm::dvec4>::const_iterator it;
+		for (it = force_list.begin(); it != force_list.end(); ++it)
+		{
+			double x = it->x;
+			double y = it->y;
+			double fx = it->z;
+			double fy = it->w;
+
+			if (x >= 1.00001 || x <= -0.00001 || y >= 1.00001 || y <= -0.00001)
+			{
+				continue;
+			}
+
+			x *= (m_domain.z - m_domain.x);
+			y *= (m_domain.w - m_domain.y);
+
+			double vx = -((double)k2) * xfactor * sin(((double)k1) * x) * cos(((double)k2) * y) * m_dt;
+			double vy = ((double)k1) * yfactor * cos(((double)k1) * x) * sin(((double)k2) * y) * m_dt;
+
+			delW(k) += (vx * fx + vy * fy);
+		}
+	}
+}
