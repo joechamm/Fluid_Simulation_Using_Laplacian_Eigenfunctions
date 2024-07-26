@@ -122,6 +122,7 @@
   <ItemGroup>
     <ClCompile Include="FluidSimulation.cpp" />
     <ClCompile Include="src\main.cpp" />
+    <ClCompile Include="VelocityField.cpp" />
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />
@@ -135,6 +136,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="FluidSimulation.h" />
+    <ClInclude Include="VelocityField.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

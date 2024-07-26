@@ -60,14 +60,9 @@ class FluidSimulation
 
 	// since we are using a square grid, we can use the square root of the number of basis functions, which is the number of basis functions in one dimension (though it doesn't quite work the same way here since our field represents the curl)
 	// we'll call this the dimension of the simulation and it will be the square root of the number of basis functions
-//	int m_num_basis_functions_sqroot;
 	uint32_t m_basis_dimension; // just call it dimension, then the number of basis functions is dimension^2
 	// number of basis functions
 	uint32_t m_num_basis_functions;
-
-	// let's make a list of the basis functions to ignore so we can see the effect of different basis functions
-	// we'll put a 1 for the modes we want to keep and a 0 for the modes we want to ignore
-	uint32_t* m_zero_modes;
 
 public:
 	FluidSimulation(uint32_t dimension = 6, double viscosity = 0.01, double dt = 0.1, const glm::dvec4& domain = glm::dvec4(0.0, 0.0, M_PI, M_PI));
@@ -75,22 +70,36 @@ public:
 
 	/// Accessors
 	double GetViscosity() const { return m_viscosity; }
-	double GetDt() const { return m_dt; }
+	void SetViscosity(double viscosity) { m_viscosity = viscosity; }
+	double GetTimestep() const { return m_dt; }
+	void SetTimestep(double dt) { m_dt = dt; }
 	glm::dvec4 GetDomain() const { return m_domain; }
+	void SetDomain(const glm::dvec4& domain) { m_domain = domain; }
 	uint32_t GetBasisDimension() const { return m_basis_dimension; }
+	uint32_t GetNumBasisFunctions() const { return m_num_basis_functions; }
+	// calculate the energy of the simulation
+	double CurrentEnergy() const;
+	// set the energy of the simulation
+	void SetEnergy(double desired_energy);
+
+	// Basis lookup table accessors
+	int32_t BasisLookup(uint32_t idx, uint32_t component) const;
+	glm::ivec2 BasisLookupK(uint32_t idx) const;
+	int32_t BasisRLookup(const glm::ivec2& K) const;
+
+	// Calculate the coefficient
+	double CalculateCoefficient(const glm::ivec2& a, const glm::ivec2& b, const glm::ivec2& c) const;
+
+	// project the list of external forces onto the basis functions where the first two components are the x and y position components and the last two are the x and y components of the force vector
+	void ProjectForces(const std::vector<glm::dvec4>& force_list, arma::vec& delW) const;
+	// calculate the velocity basis element for a given basis function
+	void BasisFieldRect2D(const glm::ivec2& K, uint32_t numGridCols, uint32_t numGridRows, double amplitude, glm::dvec2** velocityBasisElement) const;
+
+	// step the simulation forward in time
+	void TimeStep();
 
 	// Initialize the simulation
 	void Initialize();
-
-
-	// Create the lookup tables
-	void CreateLookupTables();
-	// Create the basis functions field
-	//void CreateBasisField();
-	// Create the structure coefficient matrices
-	void CreateCkMatrices();
-	// Create the scalar eigenvalues
-	void CreateEigenvalues();
 
 	// Fill Lookup Table
 	void FillLookupTables();
@@ -104,24 +113,5 @@ public:
 	void DestroyLookupTables();
 	// Destroy the scalar eigenvalues
 	void DestroyEigenvalues();
-
-	// Basis lookup table accessors
-	int32_t BasisLookup(uint32_t idx, uint32_t component) const;
-	glm::ivec2 BasisLookupK(uint32_t idx) const;
-
-	int32_t BasisRLookup(const glm::ivec2& K) const;
-
-	// Calculate the coefficient
-	double CalculateCoefficient(const glm::ivec2& a, const glm::ivec2& b, const glm::ivec2& c) const;
-
-	double CurrentEnergy() const;
-
-	void SetEnergy(double desired_energy);
-
-	void BasisFieldRect2D(const glm::ivec2& K, uint32_t numGridCols, uint32_t numGridRows, double amplitude, glm::dvec2** velocityBasisElement) const;
-
-	void TimeStep();
-
-	void ProjectForces(const std::vector<glm::dvec4>& force_list, arma::vec& delW) const;
 };
 

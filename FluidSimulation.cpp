@@ -8,7 +8,6 @@ FluidSimulation::FluidSimulation(uint32_t dimension, double viscosity, double dt
 	m_eigs_inv(nullptr),
 	m_eigs_inv_root(nullptr),
 	m_CkMatrices(nullptr),
-	m_zero_modes(nullptr),
 	m_basis_dimension(dimension),
 	m_viscosity(viscosity),
 	m_dt(dt),
@@ -20,46 +19,7 @@ FluidSimulation::FluidSimulation(uint32_t dimension, double viscosity, double dt
 	m_rk4Qn{ arma::vec(dimension* dimension, arma::fill::zeros), arma::vec(dimension* dimension, arma::fill::zeros), arma::vec(dimension* dimension, arma::fill::zeros), arma::vec(dimension* dimension, arma::fill::zeros) },
 	m_rk4Dwt{ arma::vec(dimension* dimension, arma::fill::zeros), arma::vec(dimension* dimension, arma::fill::zeros), arma::vec(dimension* dimension, arma::fill::zeros), arma::vec(dimension* dimension, arma::fill::zeros) }
 {
-	Initialize();
-}
-
-// TODO: Implement the destructor
-
-void FluidSimulation::Initialize()
-{
-	// TODO: Implement the Initialize function
-//	CreateLookupTables();
-//	CreateBasisFunctions();
-}
-
-// The structure coefficient matrices are represented here as a set of sparse matrices and are essentially a non-standard inner product between the basis functions
-void FluidSimulation::CreateCkMatrices()
-{
-	// check if the matrices have already been created
-	if (m_CkMatrices != nullptr)
-	{
-		DestroyCkMatrices();
-	}
-
-	// Allocate memory for the matrices
-	m_CkMatrices = new arma::sp_mat[m_num_basis_functions];
-
-	for (int k = 0; k < m_num_basis_functions; k++)
-	{
-		m_CkMatrices[k].set_size(m_num_basis_functions, m_num_basis_functions);
-	}
-}
-
-// Create the lookup tables for the basis functions
-void FluidSimulation::CreateLookupTables()
-{
-	if (m_basis_lookup_table != nullptr)
-	{
-		DestroyLookupTables();
-	}
-
-	// TODO: make sure that m_num_basis_functions and m_num_basis_functions_sqroot are set before calling this function
-	// store the lookup table as a list of integer grid points
+	// create the lookup tables
 	m_basis_lookup_table = new glm::ivec2[m_num_basis_functions];
 
 	for (uint32_t k = 0; k < m_num_basis_functions; k++)
@@ -68,30 +28,21 @@ void FluidSimulation::CreateLookupTables()
 		m_basis_lookup_table[k].y = -1;
 	}
 
-	// store the reverse lookup table as a list of pointers... this is a bit of a hack but it should work TODO: explain better here
 	m_basis_rlookup_table = new int32_t * [m_basis_dimension + 1];
 	for (uint32_t i = 0; i <= m_basis_dimension; i++)
 	{
 		m_basis_rlookup_table[i] = new int32_t[m_basis_dimension + 1];
 	}
 
-	for (uint32_t k1 = 0; k1 <= m_basis_dimension; k1++)
+	for(uint32_t k1 = 0; k1 <= m_basis_dimension; k1++)
 	{
 		for (uint32_t k2 = 0; k2 <= m_basis_dimension; k2++)
 		{
 			m_basis_rlookup_table[k1][k2] = -1;
 		}
 	}
-}
 
-// Create the scalar eigenvalues
-void FluidSimulation::CreateEigenvalues()
-{
-	if (m_eigs != nullptr)
-	{
-		DestroyEigenvalues();
-	}
-
+	// create the eigenvalues
 	m_eigs = new double[m_num_basis_functions];
 	m_eigs_inv = new double[m_num_basis_functions];
 	m_eigs_inv_root = new double[m_num_basis_functions];
@@ -102,13 +53,38 @@ void FluidSimulation::CreateEigenvalues()
 		m_eigs_inv[k] = 0.0;
 		m_eigs_inv_root[k] = 0.0;
 	}
+
+	// create the structure coefficient matrices
+	m_CkMatrices = new arma::sp_mat[m_num_basis_functions];
+
+	for (uint32_t k; k < m_num_basis_functions; k++)
+	{
+		m_CkMatrices[k].set_size(m_num_basis_functions, m_num_basis_functions);
+	}
+}
+
+// TODO: Implement the destructor
+FluidSimulation::~FluidSimulation()
+{
+	DestroyLookupTables();
+	DestroyEigenvalues();
+	DestroyCkMatrices();
+}
+
+void FluidSimulation::Initialize()
+{
+	// TODO: Implement the Initialize function
+//	CreateLookupTables();
+//	CreateBasisFunctions();
+	m_wCoefficients(0) = 1.0;
+	FillLookupTables();
+	// PrecomputeBasisFields();
+	PrecomputeDynamics();
 }
 
 // Fill the lookup and reverse lookup tables
 void FluidSimulation::FillLookupTables()
 {
-	CreateLookupTables();
-
 	int32_t idx = 0;
 	for (uint32_t k1 = 0; k1 <= m_basis_dimension; k1++)
 	{
@@ -130,8 +106,6 @@ void FluidSimulation::FillLookupTables()
 
 void FluidSimulation::PrecomputeDynamics()
 {
-	CreateEigenvalues();
-
 	for (uint32_t k = 0; k < m_num_basis_functions; k++)
 	{
 		glm::ivec2 idxK;
@@ -299,7 +273,7 @@ double FluidSimulation::CalculateCoefficient(const glm::ivec2& a, const glm::ive
 			return -(double)(a.x * b.y + b.x * a.y) * 0.25;
 			break;
 		case 3:
-			return (double)(a.x * b.y - b.x * a.y) * 0.25);
+			return (double)(a.x * b.y - b.x * a.y) * 0.25;
 			break;
 		}
 		break;
