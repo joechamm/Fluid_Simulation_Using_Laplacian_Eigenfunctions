@@ -1,0 +1,12 @@
+{
+    "configurations": [{
+        "name" : "x64-Debug",
+        "generator" : "Visual Studio 17 2022",
+        "configurationType" : "Debug",
+        "buildRoot" : "${projectDir}/build",
+        "variables" : [{
+            "name" : "CMAKE_TOOLCHAIN_FILE",
+            "value" : "$env{VCPKG_ROOT}/scripts/buildsystems/vcpkg.cmake"
+        }]
+    }]
+}
