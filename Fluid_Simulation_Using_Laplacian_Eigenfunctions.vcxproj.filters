@@ -85,7 +85,6 @@
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
-    <None Include="packages.config" />
     <None Include="res\shaders\ParticleTailsRender2D.fs.glsl">
       <Filter>Resource Files</Filter>
     </None>
