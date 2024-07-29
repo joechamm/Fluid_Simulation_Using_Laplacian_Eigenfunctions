@@ -3,7 +3,8 @@
 #include <glad/glad.h>
 #include <memory>
 
-#include "GLTexture.h"
+//#include "GLTexture.h"
+#include <glFramework/include/GLTexture.h>
 #include <cassert>
 
 class GLFramebuffer

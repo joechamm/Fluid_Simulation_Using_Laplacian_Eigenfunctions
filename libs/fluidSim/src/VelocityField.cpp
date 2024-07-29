@@ -1,8 +1,10 @@
 //#include "VelocityField.h"
 //#include "FluidSimulation.h"
 
-#include "../../include/VelocityField.h"
-#include "../../include/FluidSimulation.h"
+//#include "../../include/VelocityField.h"
+//#include "../../include/FluidSimulation.h"
+#include <fluidSim/include/VelocityField.h>
+#include <fluidSim/include/FluidSimulation.h>
 
 #include <stdexcept>
 #include <iostream>

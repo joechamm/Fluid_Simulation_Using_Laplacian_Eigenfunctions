@@ -1,8 +1,12 @@
-#include "../include/GLTexture.h"
-#include "../include/Bitmap.h"
-#include "../include/UtilsCubemap.h"
+//#include "../include/GLTexture.h"
+//#include "../include/Bitmap.h"
+//#include "../include/UtilsCubemap.h"
 // #include "Bitmap.h"
 // #include "UtilsCubemap.h"
+#include <glFramework/include/GLTexture.h>
+#include <commonFramework/include/Bitmap.h>
+#include <commonFramework/include/UtilsCubemap.h>
+
 
 #include <glad/glad.h>
 #include <assert.h>

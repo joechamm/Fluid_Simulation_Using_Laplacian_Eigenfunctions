@@ -1,5 +1,6 @@
 //#include "UtilsCubemap.h"
-#include "../include/UtilsCubemap.h"
+//#include "../include/UtilsCubemap.h"
+#include <commonFramework/include/UtilsCubemap.h>
 
 #ifndef _USE_MATH_DEFINES
 #define _USE_MATH_DEFINES

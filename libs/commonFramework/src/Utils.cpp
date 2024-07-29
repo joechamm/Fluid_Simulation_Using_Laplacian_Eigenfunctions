@@ -7,7 +7,8 @@
 #include <string>
 
 //#include "Utils.h"
-#include "../include/Utils.h"
+//#include "../include/Utils.h"
+#include <commonFramework/include/Utils.h>
 
 void printShaderSource(const char* text) {
 	int line = 1;

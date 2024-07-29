@@ -1,5 +1,8 @@
-#include "../include/GLShader.h"
-#include "../include/Utils.h"
+//#include "../include/GLShader.h"
+//#include "../include/Utils.h"
+
+#include <glFramework/include/GLShader.h>
+#include <commonFramework/include/Utils.h>
 
 #include <glad/glad.h>
 #include <assert.h>

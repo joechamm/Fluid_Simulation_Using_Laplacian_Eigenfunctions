@@ -1,4 +1,5 @@
-#include "../../include/FluidSimulation.h"
+//#include "../../include/FluidSimulation.h"
+#include <fluidSim/include/FluidSimulation.h>
 
 // TODO: set m_velocity_grid_resolution_y and m_velocity_grid_resolution_x 
 FluidSimulation::FluidSimulation(uint32_t dimension, double viscosity, double dt, const glm::dvec4& domain) :

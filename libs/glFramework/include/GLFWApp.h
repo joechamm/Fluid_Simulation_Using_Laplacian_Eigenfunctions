@@ -5,7 +5,7 @@
 #include <glm/glm.hpp>
 #include <glm/ext.hpp>
 
-#include "src/debug.h"
+#include <glFramework/include/debug.h>
 
 using glm::mat4;
 using glm::vec4;
