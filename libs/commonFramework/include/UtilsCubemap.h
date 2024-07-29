@@ -2,5 +2,5 @@
 
 #include "Bitmap.h"
 
-Bitmap convertEquirectangularMapToVerticalCross(const Bitmap& equirectangularMap, int faceSize);
+Bitmap convertEquirectangularMapToVerticalCross(const Bitmap& equirectangularMap);
 Bitmap convertVerticalCrossToCubeMapFaces(const Bitmap& b);
