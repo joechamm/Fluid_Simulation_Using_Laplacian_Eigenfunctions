@@ -1,5 +1,9 @@
-#include "VelocityField.h"
-#include "FluidSimulation.h"
+//#include "VelocityField.h"
+//#include "FluidSimulation.h"
+
+#include "../../include/VelocityField.h"
+#include "../../include/FluidSimulation.h"
+
 #include <stdexcept>
 #include <iostream>
 
@@ -78,4 +82,23 @@ void VelocityField::PrecomputeBasisField(const FluidSimulation& simulation)
 	} catch(const std::invalid_argument& e) {
 		std::cerr << e.what() << std::endl;
 	}
+}
+
+glm::dvec2 VelocityField::ComputeVelocity(uint32_t row, uint32_t col, const FluidSimulation& simulation) const
+{
+	glm::dvec2 vsum(0.0, 0.0);
+
+	// make sure the simulation basis dimension matches the velocity field basis dimension
+	try {
+		for(uint32_t k = 0; k < m_num_basis_functions; k++)
+		{
+			vsum += m_velocity_basis[k][row][col] * simulation.GetWCoefficient(k);
+		}
+	}
+	catch (const std::invalid_argument& e)
+	{
+		std::cerr << e.what() << std::endl;
+	}
+
+	return vsum;
 }

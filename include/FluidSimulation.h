@@ -3,7 +3,7 @@
 #define _USE_MATH_DEFINES
 #include <glm/glm.hpp>
 #include <armadillo>
-#include <cmath>
+#include <math.h>
 
 /*
 	The fluid simulation class will run our simulation and store the state of the simulation. The main objects of our simulation are the eigenfunctions of the 
@@ -77,6 +77,10 @@ public:
 	void SetDomain(const glm::dvec4& domain) { m_domain = domain; }
 	uint32_t GetBasisDimension() const { return m_basis_dimension; }
 	uint32_t GetNumBasisFunctions() const { return m_num_basis_functions; }
+	// access the w coefficients
+	double GetWCoefficient(uint32_t idx) const { return m_wCoefficients(idx); }
+	const arma::vec& GetWCoefficients() const { return m_wCoefficients; }
+
 	// calculate the energy of the simulation
 	double CurrentEnergy() const;
 	// set the energy of the simulation

@@ -28,6 +28,11 @@ public:
 	double GetAmplitude() const { return m_amplitude; }
 	void SetAmplitude(double amplitude) { m_amplitude = amplitude; }
 
+	glm::dvec2 GetVelocity(uint32_t k, uint32_t row, uint32_t col) const { return m_velocity_basis[k][row][col]; }
+	glm::dvec2** GetVelocityBasisElement(uint32_t k) const { return m_velocity_basis[k]; }
+
 	void PrecomputeBasisField(const FluidSimulation& simulation);
+
+	glm::dvec2 ComputeVelocity(uint32_t row, uint32_t col, const FluidSimulation& simulation) const;
 };
 
