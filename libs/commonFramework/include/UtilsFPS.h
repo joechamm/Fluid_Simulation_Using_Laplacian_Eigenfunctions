@@ -3,52 +3,55 @@
 #include <assert.h>
 #include <stdio.h>
 
-class FramesPerSecondCounter
+namespace commonFramework
 {
-public:
-	bool printFPS_ = true;
-
-private:
-	const float avgInterval_ = 0.5f;
-	unsigned int numFrames_ = 0;
-	double accumulatedTime_ = 0;
-	float currentFPS_ = 0.0f;
-
-public:
-	explicit FramesPerSecondCounter(float avgInterval = 0.5f)
-		: avgInterval_(avgInterval)
+	class FramesPerSecondCounter
 	{
-		assert(avgInterval > 0.0f);
-	}
+	public:
+		bool printFPS_ = true;
 
-	bool tick(float detlaSeconds, bool frameRendered = true)
-	{
-		if (frameRendered)
+	private:
+		const float avgInterval_ = 0.5f;
+		unsigned int numFrames_ = 0;
+		double accumulatedTime_ = 0;
+		float currentFPS_ = 0.0f;
+
+	public:
+		explicit FramesPerSecondCounter(float avgInterval = 0.5f)
+			: avgInterval_(avgInterval)
 		{
-			numFrames_++;
+			assert(avgInterval > 0.0f);
 		}
 
-		accumulatedTime_ += detlaSeconds;
-
-		if (accumulatedTime_ > avgInterval_)
+		bool tick(float detlaSeconds, bool frameRendered = true)
 		{
-			currentFPS_ = static_cast<float>(numFrames_ / accumulatedTime_);
-			if (printFPS_)
+			if (frameRendered)
 			{
-				printf("FPS: %.1f\n", currentFPS_);
+				numFrames_++;
 			}
 
-			numFrames_ = 0;
-			accumulatedTime_ = 0;
-			return true;
+			accumulatedTime_ += detlaSeconds;
+
+			if (accumulatedTime_ > avgInterval_)
+			{
+				currentFPS_ = static_cast<float>(numFrames_ / accumulatedTime_);
+				if (printFPS_)
+				{
+					printf("FPS: %.1f\n", currentFPS_);
+				}
+
+				numFrames_ = 0;
+				accumulatedTime_ = 0;
+				return true;
+			}
+
+			return false;
 		}
 
-		return false;
-	}
+		inline float getFPS() const
+		{
+			return currentFPS_;
+		}
 
-	inline float getFPS() const
-	{
-		return currentFPS_;
-	}
-
-};
+	};
+}

@@ -6,59 +6,64 @@
 /// <summary>
 ///  The GLShader, GLProgram, and GLBuffer classes use the RAII idiom
 /// </summary>
-class GLShader
+
+namespace glFramework
 {
-	GLenum type_;
-	GLuint handle_;
 
-public:
-	explicit GLShader(const char* filename);
-	GLShader(const std::string& filename);
-	GLShader(GLenum type, const char* text, const char* debugFilename = "");
-	~GLShader();
-
-	GLenum getType() const
+	class GLShader
 	{
-		return type_;
-	}
+		GLenum type_;
+		GLuint handle_;
 
-	GLuint getHandle() const
+	public:
+		explicit GLShader(const char* filename);
+		GLShader(const std::string& filename);
+		GLShader(GLenum type, const char* text, const char* debugFilename = "");
+		~GLShader();
+
+		GLenum getType() const
+		{
+			return type_;
+		}
+
+		GLuint getHandle() const
+		{
+			return handle_;
+		}
+	};
+
+	class GLProgram
 	{
-		return handle_;
-	}
-};
+		GLuint handle_;
+	public:
+		GLProgram(const GLShader& a);
+		GLProgram(const GLShader& a, const GLShader& b);
+		GLProgram(const GLShader& a, const GLShader& b, const GLShader& c);
+		GLProgram(const GLShader& a, const GLShader& b, const GLShader& c, const GLShader& d, const GLShader& e);
+		~GLProgram();
 
-class GLProgram
-{
-	GLuint handle_;
-public:
-	GLProgram(const GLShader& a);
-	GLProgram(const GLShader& a, const GLShader& b);
-	GLProgram(const GLShader& a, const GLShader& b, const GLShader& c);
-	GLProgram(const GLShader& a, const GLShader& b, const GLShader& c, const GLShader& d, const GLShader& e);
-	~GLProgram();
+		void useProgram() const;
 
-	void useProgram() const;
+		GLuint getHandle() const
+		{
+			return handle_;
+		}
 
-	GLuint getHandle() const
+	};
+
+	/// return the shader type based on file's extension
+	GLenum GLShaderTypeFromFilename(const char* filename);
+
+	class GLBuffer
 	{
-		return handle_;
-	}
+		GLuint handle_;
+	public:
+		GLBuffer(GLsizeiptr size, const void* data, GLbitfield flags);
+		~GLBuffer();
 
-};
-
-/// return the shader type based on file's extension
-GLenum GLShaderTypeFromFilename(const char* filename);
-
-class GLBuffer
-{
-	GLuint handle_;
-public:
-	GLBuffer(GLsizeiptr size, const void* data, GLbitfield flags);
-	~GLBuffer();
-
-	GLuint getHandle() const
-	{
-		return handle_;
-	}
-};
+		GLuint getHandle() const
+		{
+			return handle_;
+		}
+	};
+}
